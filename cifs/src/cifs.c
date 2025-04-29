@@ -326,8 +326,31 @@ CIFS_ERROR cifsUmountFileSystem(char* cifsFileName)
  */
 CIFS_ERROR cifsCreateFile(CIFS_NAME_TYPE filePath, CIFS_CONTENT_TYPE type)
 {
-	// TODO: implement
 
+CIFS_BLOCK_TYPE fileBlock;
+        fileBlock.type = CIFS_FILE_DESCRIPTOR_TYPE;
+        // root folder always has "0" as the identifier; it's incremented for the files created later
+        fileBlock.content.fileDescriptor.identifier = cifsContext->superblock->cifsNextUniqueIdentifier++;
+        fileBlock.content.fileDescriptor.type = CIFS_FILE_CONTENT_TYPE; //used to be cifs content folder type
+        strcpy(fileBlock.content.fileDescriptor.name, "file1");
+        fileBlock.content.fileDescriptor.accessRights = umask(fuseContext->umask);
+        fileBlock.content.fileDescriptor.owner = fuseContext->uid;
+        fileBlock.content.fileDescriptor.size = 0;
+        struct timespec time;
+        clock_gettime(CLOCK_MONOTONIC, &time);
+        fileBlock.content.fileDescriptor.creationTime = time.tv_sec;
+        fileBlock.content.fileDescriptor.lastAccessTime = time.tv_sec;
+        fileBlock.content.fileDescriptor.lastModificationTime = time.tv_sec;
+        fileBlock.content.fileDescriptor.block_ref = cifsContext->superblock->cifsRootNodeIndex + 1; // next block
+
+	CIFS_BLOCK_TYPE fileIndexBlock;
+        fileIndexBlock.type = CIFS_INDEX_CONTENT_TYPE;
+        // no files in the root folder yet, so all entries are free
+        //memset(&(rootFolderIndexBlock.content), CIFS_INVALID_INDEX, CIFS_INDEX_SIZE);
+        for(int i = 0; i < CIFS_INDEX_SIZE; i++) {
+                fileIndexBlock.content.index[i] = CIFS_INVALID_INDEX;
+        }
+	cifsContext->superblock = (CIFS_SUPERBLOCK_TYPE*) cifsReadBlock(CIFS_SUPERBLOCK_INDEX);
 	return CIFS_NO_ERROR;
 }
 
