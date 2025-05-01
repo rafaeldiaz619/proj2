@@ -352,18 +352,21 @@ CIFS_BLOCK_TYPE freeBlk;
         }
 	cifsContext->superblock = (CIFS_SUPERBLOCK_TYPE*) cifsReadBlock(CIFS_SUPERBLOCK_INDEX);
 	return CIFS_NO_ERROR;
+
+	cifsFindFreeBlock(const unsigned char* bitvector) freeBlk->content.fileDescriptor.block_ref;
+	cifsFlipBitVector(bitvector);
+
+	cifsFindFreeBlock(const unsigned char* bitvector) freeInBlk->content.fileDescriptor.block_ref;
+	cifsFlipBitVector(bitvector);
+
+	cifsReadBlock((const unsigned char *) cifsContext->freeBlk, CIFS_SUPERBLOCK_INDEX); //read fileblock into superblock
+	cifsReadBlock((const unsigned char *) cifsContext->freeInBlk, CIFS_SUPERBLOCK_INDEX); // read root fd into superblock
+
+	cifsWriteBlock((const unsigned char *) &freeBlk, cifsContext->superblock->freeInBlk); // this goes at the end of the code because we are saving it
+	cifsSetBit(cifsContext->bitvector, cifsContext->superblock->freeInBlk);
+
 }
-cifsFindFreeBlock(const unsigned char* bitvector) freeBlk->content.fileDescriptor.block_ref;
-cifsFlipBitVector(bitvector);
 
-cifsFindFreeBlock(const unsigned char* bitvector) freeInBlk->content.fileDescriptor.block_ref;
-cifsFlipBitVector(bitvector);
-
-cifsReadBlock((const unsigned char *) cifsContext->freeBlk, CIFS_SUPERBLOCK_INDEX); //read fileblock into superblock
-cifsReadBlock((const unsigned char *) cifsContext->freeInBlk, CIFS_SUPERBLOCK_INDEX); // read root fd into superblock
-
-cifsWriteBlock((const unsigned char *) &freeBlk, cifsContext->superblock->freeInBlk); // this goes at the end of the code because we are saving it
-cifsSetBit(cifsContext->bitvector, cifsContext->superblock->freeInBlk);
 
 //////////////////////////////////////////////////////////////////////////
 
