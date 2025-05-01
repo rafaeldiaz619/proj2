@@ -365,6 +365,8 @@ CIFS_BLOCK_TYPE freeBlk;
 	cifsWriteBlock((const unsigned char *) &freeBlk, cifsContext->superblock->freeInBlk); // this goes at the end of the code because we are saving it
 	cifsSetBit(cifsContext->bitvector, cifsContext->superblock->freeInBlk);
 
+	//rootind->content.index[rootfd->content.filedescriptor.size++] = newfdblknum;
+
 }
 
 
