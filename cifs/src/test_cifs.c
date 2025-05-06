@@ -161,6 +161,15 @@ void testStep1()
 	printf("\n\nTESTS FOR STEP #1\n=================\n\n");
 
 	// TODO: implement
+
+	cifsCreateFileSystem("teststep1");
+	printf("created file system\n");
+	cifsCreateFile("step1", CIFS_FOLDER_CONTENT_TYPE);
+	printf("created folder\n");
+	cifsCreateFile("step1file", CIFS_FILE_CONTENT_TYPE);
+	printf("created file\n");
+
+
 }
 
 

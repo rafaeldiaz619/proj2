@@ -244,8 +244,13 @@ CIFS_ERROR cifsMountFileSystem(char* cifsFileName)
 
 	// get the bitvector of the volume
 	cifsContext->bitvector = malloc(cifsContext->superblock->cifsNumberOfBlocks / 8);
-
+	// this is stuff for part 2 need to traversedisk(index, size, present index in registry)
+    // for registry entry
+	// file descriptor copy of fd
+	// parent -> index of the parent folder
+	// next ->
 	// TODO: read the bitvector from the volume (copying block after block and freeing memory as needed after copying)
+
 	// TODO: NOTE THIS HAS TO BE DONE BEFORE CREATING A FILE!!!
 
 	// create an in-memory registry of the volume
@@ -329,10 +334,8 @@ CIFS_ERROR cifsCreateFile(CIFS_NAME_TYPE filePath, CIFS_CONTENT_TYPE type)
 
 if (!cifsContext) return CIFS_SYSTEM_ERROR;
 
-    // 1) reject paths containing “/”
     if (strchr(filePath, '/')) return CIFS_NOT_FOUND_ERROR;
 
-    // 2) check for duplicates in root
     CIFS_BLOCK_TYPE rootBlk;
     cifsReadBlock((unsigned char*)&rootBlk, cifsContext->superblock->cifsRootNodeIndex);
     for (int i = 0; i < rootBlk.content.fileDescriptor.size; i++) {
@@ -343,12 +346,12 @@ if (!cifsContext) return CIFS_SYSTEM_ERROR;
             return CIFS_DUPLICATE_ERROR;
     }
 
-    // 3) find a free block for the new descriptor
+    // find free block
     CIFS_INDEX_TYPE freeBlk = cifsFindFreeBlock(cifsContext->bitvector);
     if (freeBlk >= CIFS_NUMBER_OF_BLOCKS) return CIFS_SYSTEM_ERROR;
     cifsSetBit(cifsContext->bitvector, freeBlk);
 
-    // 4) fill in descriptor
+    // info for desc
     CIFS_FILE_DESCRIPTOR_TYPE fDesc;
     memset(&fDesc, 0, sizeof(fDesc));
     fDesc.identifier               = cifsContext->superblock->cifsNextUniqueIdentifier++;
@@ -364,17 +367,17 @@ if (!cifsContext) return CIFS_SYSTEM_ERROR;
     fDesc.parent_block_ref         = cifsContext->superblock->cifsRootNodeIndex;
     fDesc.file_block_ref           = freeBlk;
 
-    // 5) write the new descriptor block out
+    // descriptor block
     unsigned char buf[CIFS_BLOCK_SIZE] = {0};
     memcpy(buf, &fDesc, sizeof(fDesc));
     cifsWriteBlock(buf, freeBlk);
 
-    // 6) link into root’s index
+    // link root indx
     rootBlk.content.index[rootBlk.content.fileDescriptor.size++] = freeBlk;
     memcpy(buf, &rootBlk.content.fileDescriptor, sizeof(rootBlk.content.fileDescriptor));
     cifsWriteBlock(buf, cifsContext->superblock->cifsRootNodeIndex);
 
-    // 7) update superblock bitvector on disk
+    // update superblock
     cifsWriteBlock(cifsContext->superblock->cifsRootNodeIndex, 0);
     for (unsigned i = 0; i * CIFS_BLOCK_SIZE * 8 < CIFS_NUMBER_OF_BLOCKS; i++) {
         cifsWriteBlock(cifsContext->bitvector + i*CIFS_BLOCK_SIZE, 1 + i);
