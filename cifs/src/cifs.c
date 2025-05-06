@@ -327,45 +327,60 @@ CIFS_ERROR cifsUmountFileSystem(char* cifsFileName)
 CIFS_ERROR cifsCreateFile(CIFS_NAME_TYPE filePath, CIFS_CONTENT_TYPE type)
 {
 
-CIFS_BLOCK_TYPE freeBlk;
-        freeBlk.type = CIFS_FILE_DESCRIPTOR_TYPE;
-        // root folder always has "0" as the identifier; it's incremented for the files created later
-        freeBlk.content.fileDescriptor.identifier = cifsContext->superblock->cifsNextUniqueIdentifier++;
-        freeBlk.content.fileDescriptor.type = CIFS_FILE_CONTENT_TYPE; //used to be cifs content folder type
-        strcpy(freeBlk.content.fileDescriptor.name, "file1");
-        freeBlk.content.fileDescriptor.accessRights = umask(fuseContext->umask);
-        freeBlk.content.fileDescriptor.owner = fuseContext->uid;
-        freeBlk.content.fileDescriptor.size = 0;
-        struct timespec time;
-        clock_gettime(CLOCK_MONOTONIC, &time);
-        freeBlk.content.fileDescriptor.creationTime = time.tv_sec;
-        freeBlk.content.fileDescriptor.lastAccessTime = time.tv_sec;
-        freeBlk.content.fileDescriptor.lastModificationTime = time.tv_sec;
-        freeBlk.content.fileDescriptor.block_ref = cifsContext->superblock->freeInBlk + 1; // next block
+if (!cifsContext) return CIFS_SYSTEM_ERROR;
 
-	CIFS_BLOCK_TYPE freeInBlk;
-        freeInBlk.type = CIFS_INDEX_CONTENT_TYPE;
-        // no files in the root folder yet, so all entries are free
-        //memset(&(rootFolderIndexBlock.content), CIFS_INVALID_INDEX, CIFS_INDEX_SIZE);
-        for(int i = 0; i < CIFS_INDEX_SIZE; i++) {
-                freeInBlk.content.index[i] = CIFS_INVALID_INDEX;
-        }
-	cifsContext->superblock = (CIFS_SUPERBLOCK_TYPE*) cifsReadBlock(CIFS_SUPERBLOCK_INDEX);
-	return CIFS_NO_ERROR;
+    // 1) reject paths containing “/”
+    if (strchr(filePath, '/')) return CIFS_NOT_FOUND_ERROR;
 
-	cifsFindFreeBlock(const unsigned char* bitvector) freeBlk->content.fileDescriptor.block_ref;
-	cifsFlipBitVector(bitvector);
+    // 2) check for duplicates in root
+    CIFS_BLOCK_TYPE rootBlk;
+    cifsReadBlock((unsigned char*)&rootBlk, cifsContext->superblock->cifsRootNodeIndex);
+    for (int i = 0; i < rootBlk.content.fileDescriptor.size; i++) {
+        CIFS_INDEX_TYPE idx = rootBlk.content.index[i];
+        CIFS_BLOCK_TYPE entry;
+        cifsReadBlock((unsigned char*)&entry, idx);
+        if (strcmp(entry.content.fileDescriptor.name, filePath) == 0)
+            return CIFS_DUPLICATE_ERROR;
+    }
 
-	cifsFindFreeBlock(const unsigned char* bitvector) freeInBlk->content.fileDescriptor.block_ref;
-	cifsFlipBitVector(bitvector);
+    // 3) find a free block for the new descriptor
+    CIFS_INDEX_TYPE freeBlk = cifsFindFreeBlock(cifsContext->bitvector);
+    if (freeBlk >= CIFS_NUMBER_OF_BLOCKS) return CIFS_SYSTEM_ERROR;
+    cifsSetBit(cifsContext->bitvector, freeBlk);
 
-	cifsReadBlock((const unsigned char *) cifsContext->freeBlk, CIFS_SUPERBLOCK_INDEX); //read fileblock into superblock
-	cifsReadBlock((const unsigned char *) cifsContext->freeInBlk, CIFS_SUPERBLOCK_INDEX); // read root fd into superblock
+    // 4) fill in descriptor
+    CIFS_FILE_DESCRIPTOR_TYPE fDesc;
+    memset(&fDesc, 0, sizeof(fDesc));
+    fDesc.identifier               = cifsContext->superblock->cifsNextUniqueIdentifier++;
+    fDesc.type                     = type;
+    strncpy(fDesc.name, filePath, CIFS_MAX_NAME_LENGTH-1);
+    time(&fDesc.creationTime);
+    fDesc.lastAccessTime           = fDesc.creationTime;
+    fDesc.lastModificationTime     = fDesc.creationTime;
+    fDesc.accessRights             = 0666;
+    fDesc.owner                    = getuid();
+    fDesc.size                     = 0;
+    fDesc.block_ref                = CIFS_INVALID_INDEX;
+    fDesc.parent_block_ref         = cifsContext->superblock->cifsRootNodeIndex;
+    fDesc.file_block_ref           = freeBlk;
 
-	cifsWriteBlock((const unsigned char *) &freeBlk, cifsContext->superblock->freeInBlk); // this goes at the end of the code because we are saving it
-	cifsSetBit(cifsContext->bitvector, cifsContext->superblock->freeInBlk);
+    // 5) write the new descriptor block out
+    unsigned char buf[CIFS_BLOCK_SIZE] = {0};
+    memcpy(buf, &fDesc, sizeof(fDesc));
+    cifsWriteBlock(buf, freeBlk);
 
-	//rootind->content.index[(0)rootfd->content.fileDescriptor.size++(+1)] = newfdblknum; 35
+    // 6) link into root’s index
+    rootBlk.content.index[rootBlk.content.fileDescriptor.size++] = freeBlk;
+    memcpy(buf, &rootBlk.content.fileDescriptor, sizeof(rootBlk.content.fileDescriptor));
+    cifsWriteBlock(buf, cifsContext->superblock->cifsRootNodeIndex);
+
+    // 7) update superblock bitvector on disk
+    cifsWriteBlock(cifsContext->superblock->cifsRootNodeIndex, 0);
+    for (unsigned i = 0; i * CIFS_BLOCK_SIZE * 8 < CIFS_NUMBER_OF_BLOCKS; i++) {
+        cifsWriteBlock(cifsContext->bitvector + i*CIFS_BLOCK_SIZE, 1 + i);
+    }
+
+    return CIFS_NO_ERROR;
 
 }
 
@@ -467,7 +482,26 @@ CIFS_ERROR cifsCloseFile(CIFS_FILE_HANDLE_TYPE fileHandle)
 CIFS_ERROR cifsGetFileInfo(CIFS_NAME_TYPE filePath, CIFS_FILE_DESCRIPTOR_TYPE* infoBuffer)
 {
 	// TODO: implement
-	
+
+	if (!cifsContext) return CIFS_SYSTEM_ERROR;
+
+	// only root children for now
+	if (strchr(filePath, '/')) return CIFS_NOT_FOUND_ERROR;
+
+	// read root block and scan
+	CIFS_BLOCK_TYPE rootBlk;
+	cifsReadBlock((unsigned char*)&rootBlk, cifsContext->superblock->cifsRootNodeIndex);
+
+	for (int i = 0; i < rootBlk.content.fileDescriptor.size; i++) {
+		CIFS_INDEX_TYPE idx = rootBlk.content.index[i];
+		CIFS_BLOCK_TYPE entry;
+		cifsReadBlock((unsigned char*)&entry, idx);
+		if (strcmp(entry.content.fileDescriptor.name, filePath) == 0) {
+			*infoBuffer = entry.content.fileDescriptor;
+			return CIFS_NO_ERROR;
+		}
+	}
+
 	return CIFS_NO_ERROR;
 }
 
