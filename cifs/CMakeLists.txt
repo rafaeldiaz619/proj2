@@ -3,6 +3,11 @@
 # /// Copyright (c) 2020 Prof. AJ Bieszczad. All rights reserved.
 # ///
 # //////////////////////////////////////////////////////////////////////////
+#/*
+#* Rafael Diaz
+#* Spring 2025
+#* COMP 362 Section 1 - Operating Systems
+#*/
 
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(cifs VERSION 0.0.1 LANGUAGES C)
@@ -18,7 +23,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-# Use pkg-config to find FUSE3
+
 find_package(PkgConfig REQUIRED)
 include(FindPkgConfig)
 
@@ -42,8 +47,7 @@ src/cifs.c
 
 target_link_libraries(cifs PRIVATE ${FUSE3_LIBRARIES})
 
-# ————————————————————————————————————————————
-# Build a variant that runs *only* testStep1()
+# runs step 1
 enable_testing()
 
 add_executable(cifs_step1

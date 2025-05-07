@@ -4,6 +4,12 @@
 ///
 //////////////////////////////////////////////////////////////////////////
 
+/*
+ * Rafael Diaz
+ * Spring 2025
+ * COMP 362 Section 1 - Operating Systems
+ */
+
 #ifndef __CIFS_H_
 #define __CIFS_H_
 
@@ -12,6 +18,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <limits.h>
+#include <unistd.h>
 
 // can also use -D flag to pass the flag to gcc: gcc -DNO_FUSE_DEBUG ...
 //#define NO_FUSE_DEBUG // TODO: comment out when integrated with FUSE
@@ -334,9 +341,11 @@ CIFS_ERROR cifsReadFile(CIFS_FILE_HANDLE_TYPE fileHandle, char** readBuffer);
  *
  */
 size_t cifsWriteBlock(const unsigned char* content, CIFS_INDEX_TYPE blockNumber);
-unsigned char* cifsReadBlock(CIFS_INDEX_TYPE blockNumber);
+void cifsReadBlock(unsigned char* buffer, CIFS_INDEX_TYPE blockNumber);
+//unsigned char* cifsReadBlock(CIFS_INDEX_TYPE blockNumber);
 void cifsCheckIOError(const char* who, const char* what);
 void cifsPrintBlockContent(const unsigned char *str);
+
 
 /***
  *
