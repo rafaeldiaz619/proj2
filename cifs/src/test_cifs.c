@@ -65,6 +65,10 @@ extern struct fuse_context* fuseContext;
 
 int main(int argc, char** argv)
 {
+#ifdef RUN_ONLY_STEP2
+    testStep2();
+    return 0;
+#endif
 	printf("sizeof(CIFS_BLOCK_TYPE) = %ld\n\n", sizeof(CIFS_BLOCK_TYPE));
 
 	printf("sizeof(CIFS_CONTENT_TYPE) = %ld\n", sizeof(CIFS_CONTENT_TYPE));
@@ -165,7 +169,6 @@ void testStep1()
 {
 	printf("\n\nTESTS FOR STEP #1\n=================\n\n");
 
-
 	// TODO: implement
 
 	CIFS_ERROR err;
@@ -225,6 +228,59 @@ void testStep2()
 	printf("\n\nTESTS FOR STEP #2\n=================\n\n");
 
 	// TODO: implement
+
+	CIFS_ERROR err;
+    CIFS_FILE_DESCRIPTOR_TYPE info;
+
+    // 1) clean up any old volume
+    unlink("cifs.vol");
+
+    // 2) create a fresh filesystem
+    err = cifsCreateFileSystem("cifs.vol");
+    printf("  create filesystem:           %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+
+    // 3) mount it
+    err = cifsMountFileSystem("cifs.vol");
+    printf("  mount filesystem:            %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+
+    // 4) add a file and a folder
+    err = cifsCreateFile("TEST2.txt", CIFS_FILE_CONTENT_TYPE);
+    printf("  create file TEST2.txt:         %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+    err = cifsCreateFile("docs", CIFS_FOLDER_CONTENT_TYPE);
+    printf("  create folder docs:          %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+
+    // 5) verify they exist in this mount
+    err = cifsGetFileInfo("TEST2.txt", &info);
+    printf("  get info TEST2.txt:            %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+    err = cifsGetFileInfo("docs", &info);
+    printf("  get info docs:               %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+
+    // 6) unmount
+    err = cifsUmountFileSystem("cifs.vol");
+    printf("  unmount filesystem:          %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+
+    // 7) remount to test persistence
+    err = cifsMountFileSystem("cifs.vol");
+    printf("  remount filesystem:          %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+
+    // 8) entries should still be there
+    err = cifsGetFileInfo("TEST2.txt", &info);
+    printf("  get info after remount TEST2:  %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+    err = cifsGetFileInfo("docs", &info);
+    printf("  get info after remount docs: %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+
+    printf("\n");
+
 }
 
 /***

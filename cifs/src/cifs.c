@@ -233,36 +233,80 @@ CIFS_ERROR cifsCreateFileSystem(char* cifsFileName)
  */
 CIFS_ERROR cifsMountFileSystem(char* cifsFileName)
 {
+	cifsContext = calloc(1, sizeof *cifsContext);
+    if (!cifsContext) return CIFS_ALLOC_ERROR;
 
 	cifsVolume = fopen(cifsFileName, "rw+"); // now we will be reading, writing, and appending
-    cifsCheckIOError("OPEN", "fopen");
+    if (!cifsVolume) return CIFS_SYSTEM_ERROR;
 
 	// --- create the OS context ---
 
-	printf("Size of CIFS_CONTEXT_TYPE: %ld\n", sizeof(CIFS_CONTEXT_TYPE));
-	cifsContext = malloc(sizeof(CIFS_CONTEXT_TYPE));
-	if (cifsContext == NULL)
+	//printf("Size of CIFS_CONTEXT_TYPE: %ld\n", sizeof(CIFS_CONTEXT_TYPE));
+	cifsContext->superblock = malloc(sizeof(*cifsContext->superblock));
+	if (!cifsContext->superblock)
 		return CIFS_ALLOC_ERROR;
+	cifsWriteBlock((const unsigned char*)cifsContext->superblock, 0);
 
+// TODO: read the bitvector from the volume (copying block after block and freeing memory as needed after copying)
+
+{
+  unsigned bits_per_block = CIFS_BLOCK_SIZE * 8;
+  unsigned bv_blocks = (cifsContext->superblock->cifsNumberOfBlocks + bits_per_block - 1)
+                       / bits_per_block;
+  size_t bv_bytes = bv_blocks * CIFS_BLOCK_SIZE;
+  cifsContext->bitvector = malloc(bv_bytes);
+  if (!cifsContext->bitvector) return CIFS_ALLOC_ERROR;
+  for (unsigned i = 0; i < bv_blocks; i++) {
+    cifsReadBlock(cifsContext->bitvector + i * CIFS_BLOCK_SIZE, 1 + i);
+  }
+}
+
+// TODO: NOTE THIS HAS TO BE DONE BEFORE CREATING A FILE!!!
+
+// TODO: traverse the file system starting with the root and populate the registry
+
+// 3) Build in‑RAM registry of root’s children
+   cifsContext->registry = calloc(CIFS_REGISTRY_SIZE, sizeof(*cifsContext->registry));
+   if (!cifsContext->registry) return CIFS_ALLOC_ERROR;
+
+   // read the root folder block
+   CIFS_BLOCK_TYPE rootBlk;
+   cifsReadBlock((unsigned char*)&rootBlk, cifsContext->superblock->cifsRootNodeIndex);
+
+   for (int i = 0; i < rootBlk.content.fileDescriptor.size; i++) {
+     CIFS_INDEX_TYPE idx = rootBlk.content.index[i];
+     CIFS_BLOCK_TYPE entryBlk;
+     cifsReadBlock((unsigned char*)&entryBlk, idx);
+
+     // use the provided hash() helper and the registry size:
+     unsigned bucket = hash(entryBlk.content.fileDescriptor.name) % CIFS_REGISTRY_SIZE;
+
+     CIFS_REGISTRY_ENTRY_TYPE* node = malloc(sizeof(*node));
+     if (!node) return CIFS_ALLOC_ERROR;
+     node->fileDescriptor = entryBlk.content.fileDescriptor;
+     node->parentFileHandle = cifsContext->superblock->cifsRootNodeIndex;
+     node->referenceCount = 0;
+
+     // push node onto bucket’s linked list
+     node->next = cifsContext->registry[bucket];
+     cifsContext->registry[bucket] = node;
+   }
+
+
+
+	return CIFS_NO_ERROR;
 	// get the superblock of the volume
-	cifsReadBlock((unsigned char*)cifsContext->superblock, CIFS_SUPERBLOCK_INDEX);
+	//cifsReadBlock((unsigned char*)cifsContext->superblock, CIFS_SUPERBLOCK_INDEX);
 
 	// get the bitvector of the volume
-	cifsContext->bitvector = malloc(cifsContext->superblock->cifsNumberOfBlocks / 8);
+
 	// this is stuff for part 2 need to traversedisk(index, size, present index in registry)
     // for registry entry
 	// file descriptor copy of fd
 	// parent -> index of the parent folder
 	// next ->
-	// TODO: read the bitvector from the volume (copying block after block and freeing memory as needed after copying)
 
-	// TODO: NOTE THIS HAS TO BE DONE BEFORE CREATING A FILE!!!
 
-	// create an in-memory registry of the volume
-
-	// TODO: traverse the file system starting with the root and populate the registry
-
-	return CIFS_NO_ERROR;
 }
 
 /***

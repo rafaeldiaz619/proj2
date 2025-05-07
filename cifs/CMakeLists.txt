@@ -54,12 +54,26 @@ add_executable(cifs_step1
 src/test_cifs.c
 src/cifs.c
 )
+
 target_compile_definitions(cifs_step1 PRIVATE RUN_ONLY_STEP1)
 target_link_libraries(cifs_step1 PRIVATE ${FUSE3_LIBRARIES})
 
 add_test(
 NAME CIFS_Step1
 COMMAND cifs_step1
+)
+
+add_executable(cifs_step2
+        src/test_cifs.c
+        src/cifs.c
+)
+
+target_compile_definitions(cifs_step2 PRIVATE RUN_ONLY_STEP2)
+target_link_libraries(cifs_step2 PRIVATE ${FUSE3_LIBRARIES})
+
+add_test(
+   NAME CIFS_Step2
+   COMMAND cifs_step2
 )
 
 add_executable(blockVolume src/blockVolume.c)
