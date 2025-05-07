@@ -3,6 +3,11 @@
 /// Copyright (c) 2020 Prof. AJ Bieszczad. All rights reserved.
 ///
 //////////////////////////////////////////////////////////////////////////
+/*
+ * Rafael Diaz
+ * Spring 2025
+ * COMP 362 Section 1 - Operating Systems
+ */
 ///
 /// This source contains code suitable for testing without FUSE.
 ///
@@ -240,7 +245,7 @@ CIFS_ERROR cifsMountFileSystem(char* cifsFileName)
 		return CIFS_ALLOC_ERROR;
 
 	// get the superblock of the volume
-	cifsContext->superblock = (CIFS_SUPERBLOCK_TYPE*) cifsReadBlock(CIFS_SUPERBLOCK_INDEX);
+	cifsReadBlock((unsigned char*)cifsContext->superblock, CIFS_SUPERBLOCK_INDEX);
 
 	// get the bitvector of the volume
 	cifsContext->bitvector = malloc(cifsContext->superblock->cifsNumberOfBlocks / 8);
@@ -375,7 +380,7 @@ if (!cifsContext) return CIFS_SYSTEM_ERROR;
     // link root indx
     rootBlk.content.index[rootBlk.content.fileDescriptor.size++] = freeBlk;
     memcpy(buf, &rootBlk.content.fileDescriptor, sizeof(rootBlk.content.fileDescriptor));
-    cifsWriteBlock(buf, cifsContext->superblock->cifsRootNodeIndex);
+    cifsWriteBlock((const unsigned char*)cifsContext->superblock, 0);
 
     // update superblock
     cifsWriteBlock(cifsContext->superblock->cifsRootNodeIndex, 0);
@@ -624,21 +629,28 @@ size_t cifsWriteBlock(const unsigned char* content, CIFS_INDEX_TYPE blockNumber)
  * Read a single block from a block device.
  *
  */
-unsigned char* cifsReadBlock(CIFS_INDEX_TYPE blockNumber)
+void cifsReadBlock(unsigned char* buffer, CIFS_INDEX_TYPE blockNumber)
 {
 	unsigned char* content = malloc(CIFS_BLOCK_SIZE);
 
 	fseek(cifsVolume, blockNumber * CIFS_BLOCK_SIZE, SEEK_SET);
-    cifsCheckIOError("READ", "fseek");
-	printf("READ : POSITION=%6ld, ", ftell(cifsVolume));
-    cifsCheckIOError("READ", "ftell");
-	size_t len = fread((void * restrict)content, sizeof(unsigned char), CIFS_BLOCK_SIZE, cifsVolume);
-    cifsCheckIOError("READ", "fread");
-	printf("LENGTH=%4ld, CONTENT=", len); // %s will usually not work
-	cifsPrintBlockContent(content);
-	printf("\n");
+	cifsCheckIOError("READ","fseek");
+	size_t r = fread(buffer, 1, CIFS_BLOCK_SIZE, cifsVolume);
+	cifsCheckIOError("READ","fread");
+	// (optional) debug print buffer
+    return;
 
-	return content;
+	//fseek(cifsVolume, blockNumber * CIFS_BLOCK_SIZE, SEEK_SET);
+    //cifsCheckIOError("READ", "fseek");
+	//printf("READ : POSITION=%6ld, ", ftell(cifsVolume));
+    //cifsCheckIOError("READ", "ftell");
+	//size_t len = fread((void * restrict)content, sizeof(unsigned char), CIFS_BLOCK_SIZE, cifsVolume);
+    //cifsCheckIOError("READ", "fread");
+	//printf("LENGTH=%4ld, CONTENT=", len); // %s will usually not work
+	//cifsPrintBlockContent(content);
+	//printf("\n");
+
+	//return content;
 }
 
 //////////////////////////////////////////////////////////////////////////

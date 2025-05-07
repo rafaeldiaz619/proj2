@@ -3,6 +3,11 @@
 /// Copyright (c) 2020 Prof. AJ Bieszczad. All rights reserved.
 ///
 //////////////////////////////////////////////////////////////////////////
+/*
+ * Rafael Diaz
+ * Spring 2025
+ * COMP 362 Section 1 - Operating Systems
+ */
 ////
 /// Code demonstrating reading and writing blocks from and to block devices
 ///
