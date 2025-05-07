@@ -10,7 +10,7 @@ project(cifs VERSION 0.0.1 LANGUAGES C)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_FILE_OFFSET_BITS=64")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG")
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -18,27 +18,44 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-#
-#  The following comes from:
-#  https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/How-To-Write-Platform-Checks
-#
-if(UNIX AND NOT APPLE)
-    set(LINUX TRUE)
-endif()
+# Use pkg-config to find FUSE3
+find_package(PkgConfig REQUIRED)
+include(FindPkgConfig)
 
-# if(NOT LINUX) should work, too, if you need that
-if(LINUX)
-    message(STATUS ">>> Building with FUSE")
-    find_package(FUSE REQUIRED)
-    include_directories(${FUSE_INCLUDE_DIR})
-else()
-    message(STATUS ">>> Building without FUSE")
-    # stuff that should happen not on Linux
-endif()
+pkg_check_modules(FUSE3 REQUIRED fuse3)   # looks for fuse3.pc
 
-include_directories(inc)
+message(STATUS ">>> Building with FUSE3 via pkg-config:")
+message(STATUS "    include dirs: ${FUSE3_INCLUDE_DIRS}")
+message(STATUS "    libraries:   ${FUSE3_LIBRARIES}")
 
-add_executable(cifs src/test_cifs.c src/cifs.c)
-target_link_libraries(cifs ${FUSE_LIBRARIES})
+include_directories(
+  inc
+  ${FUSE3_INCLUDE_DIRS}
+)
+link_directories(${FUSE3_LIBRARY_DIRS})
+add_definitions(${FUSE3_CFLAGS_OTHER})
+
+add_executable(cifs
+src/test_cifs.c
+src/cifs.c
+)
+
+target_link_libraries(cifs PRIVATE ${FUSE3_LIBRARIES})
+
+# ————————————————————————————————————————————
+# Build a variant that runs *only* testStep1()
+enable_testing()
+
+add_executable(cifs_step1
+src/test_cifs.c
+src/cifs.c
+)
+target_compile_definitions(cifs_step1 PRIVATE RUN_ONLY_STEP1)
+target_link_libraries(cifs_step1 PRIVATE ${FUSE3_LIBRARIES})
+
+add_test(
+NAME CIFS_Step1
+COMMAND cifs_step1
+)
 
 add_executable(blockVolume src/blockVolume.c)

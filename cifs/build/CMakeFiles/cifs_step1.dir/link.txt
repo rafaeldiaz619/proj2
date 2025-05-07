@@ -1,0 +1,1 @@
+/usr/bin/cc  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG CMakeFiles/cifs_step1.dir/src/test_cifs.c.o CMakeFiles/cifs_step1.dir/src/cifs.c.o -o bin/cifs_step1  -lfuse3 -lpthread 

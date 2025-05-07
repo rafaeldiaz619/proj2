@@ -1,0 +1,6 @@
+/home/booman/CLionProjects/proj2/cifs/build/CMakeFiles/cifs.dir
+/home/booman/CLionProjects/proj2/cifs/build/CMakeFiles/cifs_step1.dir
+/home/booman/CLionProjects/proj2/cifs/build/CMakeFiles/blockVolume.dir
+/home/booman/CLionProjects/proj2/cifs/build/CMakeFiles/test.dir
+/home/booman/CLionProjects/proj2/cifs/build/CMakeFiles/edit_cache.dir
+/home/booman/CLionProjects/proj2/cifs/build/CMakeFiles/rebuild_cache.dir

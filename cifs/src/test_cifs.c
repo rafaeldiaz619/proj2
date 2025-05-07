@@ -160,16 +160,53 @@ void testStep1()
 {
 	printf("\n\nTESTS FOR STEP #1\n=================\n\n");
 
+
 	// TODO: implement
 
-	cifsCreateFileSystem("teststep1");
-	printf("created file system\n");
-	cifsCreateFile("step1", CIFS_FOLDER_CONTENT_TYPE);
-	printf("created folder\n");
-	cifsCreateFile("step1file", CIFS_FILE_CONTENT_TYPE);
-	printf("created file\n");
+	CIFS_ERROR err;
+    CIFS_FILE_DESCRIPTOR_TYPE info;
+    unlink("cifs.vol");
 
+	err = cifsCreateFileSystem("cifs.vol");
+    printf("  create filesystem:      %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
 
+	err = cifsMountFileSystem("cifs.vol");
+    printf("  mount filesystem:       %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+
+    err = cifsCreateFile("alpha.txt", CIFS_FILE_CONTENT_TYPE);
+    printf("  create file alpha.txt:  %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+
+	err = cifsGetFileInfo("alpha.txt", &info);
+    printf("  get info alpha.txt:     %s   (type=%s, name=\"%s\")\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL",
+           info.type == CIFS_FILE_CONTENT_TYPE ? "FILE" : "FOLDER",
+           info.name);
+
+	err = cifsCreateFile("data", CIFS_FOLDER_CONTENT_TYPE);
+    printf("  create folder data:     %s\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL");
+
+	err = cifsGetFileInfo("data", &info);
+    printf("  get info data:          %s   (type=%s)\n",
+           err == CIFS_NO_ERROR ? "PASS" : "FAIL",
+           info.type == CIFS_FOLDER_CONTENT_TYPE ? "FOLDER" : "FILE");
+
+	err = cifsCreateFile("alpha.txt", CIFS_FILE_CONTENT_TYPE); //duplicate fail
+    printf("  dup create alpha.txt:   %s\n",
+           err == CIFS_DUPLICATE_ERROR ? "PASS" : "FAIL");
+
+	err = cifsCreateFile("bad/name", CIFS_FILE_CONTENT_TYPE); //invalid name should fail
+    printf("  invalid name slash:     %s\n",
+           err == CIFS_NOT_FOUND_ERROR ? "PASS" : "FAIL");
+
+	err = cifsGetFileInfo("ghost", &info); //should fail bc non existent
+    printf("  get info ghost:         %s\n",
+           err == CIFS_NOT_FOUND_ERROR ? "PASS" : "FAIL");
+
+	printf("\n");
 }
 
 

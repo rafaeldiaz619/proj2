@@ -17,6 +17,9 @@
 //#define NO_FUSE_DEBUG // TODO: comment out when integrated with FUSE
 
 #ifdef __linux__
+#ifndef FUSE_USE_VERSION
+#  define FUSE_USE_VERSION 35
+#endif
 #include <fuse.h>
 #else
 #include <sys/types.h>
@@ -30,6 +33,10 @@ typedef struct fuse_context
     void * private_data;
     mode_t umask;
 } fuse_context;
+#endif
+
+#ifndef FUSE_USE_VERSION
+#define FUSE_USE_VERSION 35
 #endif
 
 //////////////////////////////////////////////////////////////////////////
