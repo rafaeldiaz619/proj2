@@ -27,25 +27,25 @@ set(CMAKE_BUILD_TYPE Debug)
 find_package(PkgConfig REQUIRED)
 include(FindPkgConfig)
 
-pkg_check_modules(FUSE3 REQUIRED fuse3)   # looks for fuse3.pc
+pkg_check_modules(FUSE REQUIRED fuse)   # looks for fuse3.pc
 
 message(STATUS ">>> Building with FUSE3 via pkg-config:")
-message(STATUS "    include dirs: ${FUSE3_INCLUDE_DIRS}")
-message(STATUS "    libraries:   ${FUSE3_LIBRARIES}")
+message(STATUS "    include dirs: ${FUSE_INCLUDE_DIRS}")
+message(STATUS "    libraries:   ${FUSE_LIBRARIES}")
 
 include_directories(
   inc
-  ${FUSE3_INCLUDE_DIRS}
+  ${FUSE_INCLUDE_DIRS}
 )
-link_directories(${FUSE3_LIBRARY_DIRS})
-add_definitions(${FUSE3_CFLAGS_OTHER})
+link_directories(${FUSE_LIBRARY_DIRS})
+add_definitions(${FUSE_CFLAGS_OTHER})
 
 add_executable(cifs
 src/test_cifs.c
 src/cifs.c
 )
 
-target_link_libraries(cifs PRIVATE ${FUSE3_LIBRARIES})
+target_link_libraries(cifs PRIVATE ${FUSE_LIBRARIES})
 
 # runs step 1
 enable_testing()
@@ -56,7 +56,7 @@ src/cifs.c
 )
 
 target_compile_definitions(cifs_step1 PRIVATE RUN_ONLY_STEP1)
-target_link_libraries(cifs_step1 PRIVATE ${FUSE3_LIBRARIES})
+target_link_libraries(cifs_step1 PRIVATE ${FUSE_LIBRARIES})
 
 add_test(
 NAME CIFS_Step1
@@ -69,7 +69,7 @@ add_executable(cifs_step2
 )
 
 target_compile_definitions(cifs_step2 PRIVATE RUN_ONLY_STEP2)
-target_link_libraries(cifs_step2 PRIVATE ${FUSE3_LIBRARIES})
+target_link_libraries(cifs_step2 PRIVATE ${FUSE_LIBRARIES})
 
 add_test(
    NAME CIFS_Step2

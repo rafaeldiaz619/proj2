@@ -1,0 +1,37 @@
+[
+{
+  "directory": "/home/s25student1/CLionProjects/proj2/cifs/build",
+  "command": "/usr/bin/cc -D_FILE_OFFSET_BITS=64 -I/home/s25student1/CLionProjects/proj2/cifs/inc -I/usr/include/fuse  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG -o CMakeFiles/cifs.dir/src/test_cifs.c.o -c /home/s25student1/CLionProjects/proj2/cifs/src/test_cifs.c",
+  "file": "/home/s25student1/CLionProjects/proj2/cifs/src/test_cifs.c"
+},
+{
+  "directory": "/home/s25student1/CLionProjects/proj2/cifs/build",
+  "command": "/usr/bin/cc -D_FILE_OFFSET_BITS=64 -I/home/s25student1/CLionProjects/proj2/cifs/inc -I/usr/include/fuse  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG -o CMakeFiles/cifs.dir/src/cifs.c.o -c /home/s25student1/CLionProjects/proj2/cifs/src/cifs.c",
+  "file": "/home/s25student1/CLionProjects/proj2/cifs/src/cifs.c"
+},
+{
+  "directory": "/home/s25student1/CLionProjects/proj2/cifs/build",
+  "command": "/usr/bin/cc -DRUN_ONLY_STEP1 -D_FILE_OFFSET_BITS=64 -I/home/s25student1/CLionProjects/proj2/cifs/inc -I/usr/include/fuse  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG -o CMakeFiles/cifs_step1.dir/src/test_cifs.c.o -c /home/s25student1/CLionProjects/proj2/cifs/src/test_cifs.c",
+  "file": "/home/s25student1/CLionProjects/proj2/cifs/src/test_cifs.c"
+},
+{
+  "directory": "/home/s25student1/CLionProjects/proj2/cifs/build",
+  "command": "/usr/bin/cc -DRUN_ONLY_STEP1 -D_FILE_OFFSET_BITS=64 -I/home/s25student1/CLionProjects/proj2/cifs/inc -I/usr/include/fuse  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG -o CMakeFiles/cifs_step1.dir/src/cifs.c.o -c /home/s25student1/CLionProjects/proj2/cifs/src/cifs.c",
+  "file": "/home/s25student1/CLionProjects/proj2/cifs/src/cifs.c"
+},
+{
+  "directory": "/home/s25student1/CLionProjects/proj2/cifs/build",
+  "command": "/usr/bin/cc -DRUN_ONLY_STEP2 -D_FILE_OFFSET_BITS=64 -I/home/s25student1/CLionProjects/proj2/cifs/inc -I/usr/include/fuse  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG -o CMakeFiles/cifs_step2.dir/src/test_cifs.c.o -c /home/s25student1/CLionProjects/proj2/cifs/src/test_cifs.c",
+  "file": "/home/s25student1/CLionProjects/proj2/cifs/src/test_cifs.c"
+},
+{
+  "directory": "/home/s25student1/CLionProjects/proj2/cifs/build",
+  "command": "/usr/bin/cc -DRUN_ONLY_STEP2 -D_FILE_OFFSET_BITS=64 -I/home/s25student1/CLionProjects/proj2/cifs/inc -I/usr/include/fuse  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG -o CMakeFiles/cifs_step2.dir/src/cifs.c.o -c /home/s25student1/CLionProjects/proj2/cifs/src/cifs.c",
+  "file": "/home/s25student1/CLionProjects/proj2/cifs/src/cifs.c"
+},
+{
+  "directory": "/home/s25student1/CLionProjects/proj2/cifs/build",
+  "command": "/usr/bin/cc -D_FILE_OFFSET_BITS=64 -I/home/s25student1/CLionProjects/proj2/cifs/inc -I/usr/include/fuse  -D_FILE_OFFSET_BITS=64 -g -Wall --pedantic -g -O0 -D_DEBUG -DNO_FUSE_DEBUG -o CMakeFiles/blockVolume.dir/src/blockVolume.c.o -c /home/s25student1/CLionProjects/proj2/cifs/src/blockVolume.c",
+  "file": "/home/s25student1/CLionProjects/proj2/cifs/src/blockVolume.c"
+}
+]

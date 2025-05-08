@@ -151,8 +151,8 @@ CIFS_ERROR cifsCreateFileSystem(char* cifsFileName)
 	rootFolderBlock.content.fileDescriptor.identifier = cifsContext->superblock->cifsNextUniqueIdentifier++;
 	rootFolderBlock.content.fileDescriptor.type = CIFS_FOLDER_CONTENT_TYPE;
 	strcpy(rootFolderBlock.content.fileDescriptor.name, "/");
-	rootFolderBlock.content.fileDescriptor.accessRights = umask(fuseContext->umask);
-	rootFolderBlock.content.fileDescriptor.owner = fuseContext->uid;
+	rootFolderBlock.content.fileDescriptor.accessRights = 0666;
+	rootFolderBlock.content.fileDescriptor.owner = getuid(); // forgot to change this so no more seg fault in the beginning so now need to find next seg fault
 	rootFolderBlock.content.fileDescriptor.size = 0;
 	struct timespec time;
 	clock_gettime(CLOCK_MONOTONIC, &time);
